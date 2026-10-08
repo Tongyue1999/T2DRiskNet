@@ -1,0 +1,16 @@
+vendor/
+.deps/
+data/
+reports/
+__pycache__/
+.venv/
+.env
+.env.*
+.streamlit/secrets.toml
+*.rds
+*.zip
+*.docx
+*.pt
+*.pth
+*.npz
+local_*
