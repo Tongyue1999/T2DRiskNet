@@ -6,6 +6,10 @@ Bilingual Streamlit research prototype for longitudinal cardiovascular risk asse
 
 ## Run / 运行
 
+Live synthetic research workbench: https://t2drisknet-research.streamlit.app/ (use `?lang=en` for English). Real model inference, invented cases/outcomes, no real hospital uploads. The separately deployed runtime repository is private; no model weights are distributed here.
+
+公开在线版已支持真实模型计算、合成结局容量仿真与医生审核后的双语报告。医院对接仍需授权接口、身份认证及核实的数据映射；不是已上线的医院系统。
+
 ```bash
 python -m venv .venv
 # Activate the environment for your operating system.
@@ -36,7 +40,7 @@ Top-risk 5%, 10%, and 20% denote fixed review capacity, not probability threshol
 
 ## Deployment / 部署
 
-This repository contains source code, not a hosted Python service. GitHub Pages can display the static `product_brief_zh.html` and `product_brief_en.html`; running the interactive workbench requires Streamlit/Python hosting. Public hosting must use synthetic demonstration data and must not expose clinical uploads or local hospital paths. The application is currently a local research prototype without production authentication or access control.
+GitHub Pages hosts the bilingual entry page; Streamlit Community Cloud runs `cloud_app.py` from a separate private runtime repository. Model weights stay private. The public application defaults to synthetic-only demo mode. A hospital deployment needs authentication, access control, verified integration and outcome validation.
 
 默认仅绑定本机。实际医院数据继续在本机或经批准的院内环境运行。公开演示应单独部署，使用合成资料，不上传医院原始数据或患者记录。
 

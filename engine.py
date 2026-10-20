@@ -6,6 +6,7 @@ import io
 import json
 import sys
 import tempfile
+import os
 import threading
 from datetime import date
 from functools import lru_cache
@@ -20,9 +21,11 @@ LOCK = threading.Lock()
 
 @lru_cache(maxsize=1)
 def resources():
+    from cloud_bootstrap import install_private_bundle
+    install_private_bundle()
     import torch
     torch.set_num_threads(4)
-    package = next((p.parent for p in (ROOT / 'vendor').rglob('requirements.txt')), None)
+    package = Path(os.environ['T2D_BUNDLE_PATH']) if os.environ.get('T2D_BUNDLE_PATH') else next((p.parent for p in (ROOT / 'vendor').rglob('requirements.txt')), None)
     if package is None:
         raise ValueError('Model bundle is not installed. Place the authorised bundle under vendor/; model weights and clinical data are intentionally excluded from this repository.')
     modules = []
