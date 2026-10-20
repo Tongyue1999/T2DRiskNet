@@ -1,6 +1,7 @@
 """Explicit schema detection, conservative conversion, and reviewed reports."""
 import io,json,html
 import pandas as pd
+from risk_profile import profile_html
 
 ALIASES={'patient_id':['patient_id','PERSON_ID_NEW','患者编号','patient_key'],'birthdate':['birthdate','出生日期','date_of_birth'],'gender':['gender','性别','sex'],'admdate':['admdate','event_date','日期','诊断日期'],'codes':['codes','code','诊断代码','CONDITION_CODE'],'value':['value','检验值'],'unit':['unit','单位']}
 
@@ -57,4 +58,4 @@ def report(row,model,horizon,reviewer,followup,assessment,lang='zh',approved=Fal
     explanation='这是预测的首次心血管事件风险，不是诊断或治疗效果。随访日期由审核医生确认；不能因为低风险而停止常规治疗。' if zh else 'This is predicted first cardiovascular event risk, not a diagnosis or treatment effect. The reviewing clinician confirms follow-up; a low prediction does not justify stopping routine treatment.'
     warning=('合成病例演示，不能用于真实患者。' if zh else 'Synthetic case demonstration; not for actual patient care.') if synthetic else ('研究原型，适用性和本地校准待核实。' if zh else 'Research prototype; eligibility and local calibration require verification.')
     fields=[('编号 / ID',row['patient_key']),('评估日期 / Assessment',assessment),('模型 / Model','model_'+model),('时间窗 / Horizon',f'{horizon} months (30 days/month)'),('风险 / Risk',f'{risk:.1%}'),('医生确认随访日期 / Clinician-confirmed follow-up',followup),('审核人 / Reviewer',reviewer)]
-    return '<!doctype html><html lang="'+lang+'"><meta charset="utf-8"><title>'+title+'</title><style>body{max-width:800px;margin:40px auto;padding:24px;font:17px/1.7 system-ui;color:#183247}td,th{padding:12px;border:1px solid #ccd8dc;text-align:left}table{border-collapse:collapse;width:100%}</style><h1>'+title+'</h1><p>'+esc(warning)+'</p><table>'+''.join('<tr><th>'+esc(a)+'</th><td>'+esc(b)+'</td></tr>' for a,b in fields)+'</table><p>'+esc(explanation)+'</p></html>'
+    return '<!doctype html><html lang="'+lang+'"><meta charset="utf-8"><title>'+title+'</title><style>body{max-width:800px;margin:40px auto;padding:24px;font:17px/1.7 system-ui;color:#183247}td,th{padding:12px;border:1px solid #ccd8dc;text-align:left}table{border-collapse:collapse;width:100%}</style><h1>'+title+'</h1><p>'+esc(warning)+'</p><table>'+''.join('<tr><th>'+esc(a)+'</th><td>'+esc(b)+'</td></tr>' for a,b in fields)+'</table>'+profile_html(dict(row,assessment_date=assessment),model,lang)+'<p>'+esc(explanation)+'</p></html>'

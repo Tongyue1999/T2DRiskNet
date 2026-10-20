@@ -6,6 +6,7 @@ import pandas as pd
 import streamlit as st
 from engine import infer,HORIZONS
 from analysis import evaluate,selected
+from risk_profile import render_profile
 from clinical_io import detect,event_table,synthetic_patients,report
 
 st.set_page_config(page_title='T2DRiskNet Research Workbench',page_icon='🫀',layout='wide')
@@ -52,11 +53,13 @@ if 'cloud_predictions' not in st.session_state:
     st.info(t('请先在“数据接入与预测”中确认输入并运行模型。','Confirm input and run models in Data and prediction first.'));st.stop()
 f,ex,manifest,synthetic=st.session_state['cloud_predictions']
 model=st.selectbox(t('模型权重标识','Weight identifier'),['02','03'])
-horizon=st.selectbox(t('时间窗（月）','Horizon (months)'),HORIZONS,index=2)
+horizon=st.selectbox(t('排序与仿真时间窗（月）','Ranking and simulation horizon (months)'),HORIZONS,index=2)
 score=f'risk_{model}_{horizon}'
 ranking=f.sort_values([score,'patient_key'],ascending=[False,True]).reset_index(drop=True)
 if page in ['数据接入与预测','Data and prediction']:
     st.metric(t('获得预测的人数','Patients with predictions'),len(f))
+    profile_patient=st.selectbox(t('查看五个时间窗的风险','View all five risk windows'),ranking.patient_key.tolist(),key='profile_patient')
+    render_profile(st,ranking[ranking.patient_key==profile_patient].iloc[0],model,'zh' if zh else 'en')
     cap=st.select_slider(t('额外复查容量（队列百分比）','Additional review capacity (% of cohort)'),options=[5,10,20],value=10)
     ranking['priority_review_candidate']=selected(ranking,score,cap/100)
     st.dataframe(ranking[['patient_key','assessment_date','age','sex',score,'priority_review_candidate']],hide_index=True,use_container_width=True)
@@ -92,8 +95,8 @@ else:
     pid=st.selectbox(t('匿名病例','Pseudonymous case'),ranking.patient_key.tolist())
     row=ranking[ranking.patient_key==pid].iloc[0]
     import hashlib
-    review_context=hashlib.sha256((pid+model+str(horizon)+row.assessment_date+repr(float(row[score]))+json.dumps(manifest,sort_keys=True)).encode()).hexdigest()[:24]
-    st.metric(t('预测风险','Predicted risk'),f'{row[score]:.1%}')
+    review_context=hashlib.sha256((pid+model+str(horizon)+row.assessment_date+repr([float(row[f'risk_{model}_{h}']) for h in HORIZONS])+json.dumps(manifest,sort_keys=True)).encode()).hexdigest()[:24]
+    render_profile(st,row,model,'zh' if zh else 'en')
     st.write(t('系统建议：结合临床情况审核是否额外评估。模型不能确定治疗效果或自动决定随访间隔。','System prompt: review whether additional assessment is warranted in clinical context. The model cannot determine treatment effects or automatically decide a follow-up interval.'))
     reviewer=st.text_input(t('审核医生（演示请填虚构姓名）','Reviewing clinician (use an invented name in demo)'),key='reviewer_'+review_context)
     followup=st.date_input(t('医生确认随访日期','Clinician-confirmed follow-up date'),value=None,min_value=date.fromisoformat(row.assessment_date)+timedelta(days=1),key='followup_'+review_context)

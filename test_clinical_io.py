@@ -13,15 +13,16 @@ class ClinicalIOTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'Ambiguous'):detect(df.to_csv(index=False).encode(),'a.csv')
         with self.assertRaisesRegex(ValueError,'Missing'):detect(df.drop(columns=['患者编号','birthdate']).to_csv(index=False).encode(),'a.csv')
     def test_unreviewed_and_past_date_reports_rejected(self):
-        row={'patient_key':'SYNTHETIC','risk_02_12':.2}
+        row={'patient_key':'SYNTHETIC',**{f'risk_02_{h}':.2 for h in [3,6,12,36,60]}}
         with self.assertRaises(ValueError):report(row,'02',12,'Reviewer','2025-02-01','2025-01-01')
         with self.assertRaises(ValueError):report(row,'02',12,'Reviewer','2024-02-01','2025-01-01',approved=True)
     def test_bilingual_report_is_escaped_and_explicitly_synthetic(self):
-        row={'patient_key':'<SYNTHETIC>','risk_02_12':.2}
+        row={'patient_key':'<SYNTHETIC>',**{f'risk_02_{h}':.2 for h in [3,6,12,36,60]}}
         zh=report(row,'02',12,'<Reviewer>','2025-02-01','2025-01-01','zh',True)
         en=report(row,'02',12,'<Reviewer>','2025-02-01','2025-01-01','en',True)
         self.assertIn('合成病例',zh);self.assertIn('Synthetic',en)
         self.assertIn('&lt;Reviewer&gt;',en);self.assertNotIn('<Reviewer>',en)
         self.assertIn('20.0%',zh)
+        for h in [3,6,12,36,60]:self.assertIn(f'Within {h} months',en)
 
 if __name__=='__main__':unittest.main()
