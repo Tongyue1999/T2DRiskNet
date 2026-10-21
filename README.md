@@ -4,6 +4,16 @@ Bilingual Streamlit research prototype for longitudinal cardiovascular risk asse
 
 面向医生和研究人员的中英文研究原型，支持纵向临床资料接入、五个风险时间窗和固定复查容量的策略比较。行动范围是额外评估、强化复诊或管理复核；低风险预测不改变指南推荐治疗。预测识别事件不等于预防事件，药物归因不代表个体治疗效应。
 
+## Simple clinical view / 简洁版
+
+The default app now has two clinician routes: individual assessment and batch import, with a read-only patient report view. It opens with an entirely invented patient assessed by the real longitudinal model. Chinese and English are available. Advanced research tools remain in `research_app.py`.
+
+The local edition accepts common CSV/TSV, Excel multi-sheet, patient JSON and linked-table ZIP exports, with explicit field/code/unit confirmation. It does not understand every proprietary EHR format. The public cloud edition uses invented records and does not accept hospital uploads. See [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) for the loopback development API and supported mappings.
+
+The key-data form is a sparse-input research trial of the original model, not a validated reduced-feature model. Cohort attribution is not personal attribution or a treatment effect. The plotting exclusion of Z/C/D0–D4 diagnoses changes the display only. Follow-up requires clinician confirmation; the example date is a fictional clinician preset.
+
+默认只保留“评估一位患者”和“导入一批患者”，患者端查看示例或医生已审核报告。支持常见格式，不承诺任意医院资料无需核对即可适配。少量指标试算尚未经过简化模型验证，复查日期由医生确认。
+
 ## Run / 运行
 
 Live synthetic research workbench: https://t2drisknet-research.streamlit.app/ (use `?lang=en` for English). Real model inference, invented cases/outcomes, no real hospital uploads. The separately deployed runtime repository is private; no model weights are distributed here.

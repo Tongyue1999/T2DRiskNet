@@ -1,0 +1,199 @@
+{
+  "source_files": [
+    {
+      "name": "cancerrisknet_interval_bar_all_60m.csv",
+      "sha256": "6186ff6c29eb2e6bafbb82a28c3c2c74dde4a09f22c906a6d0d0c9da461ecb5e"
+    },
+    {
+      "name": "cancerrisknet_modality_bar_all_60m.csv",
+      "sha256": "76eb4a75573e064dc0f3ce54b0476353046d4b97e6e2f5e59bb742aaa8dc468c"
+    },
+    {
+      "name": "cancerrisknet_overall_bar_all_60m.csv",
+      "sha256": "27e78157b1af60388d8e582ee1f0f27c1ce8f8e6202452cb7aead0d3455a6b27"
+    }
+  ],
+  "scope": "60-month integrated-gradient attribution; event-positive development-cohort subset per supplied notes; correspondence to deployed weights not verified",
+  "display_exclusion_regex": "^(Z|C[0-9]|D[0-4])",
+  "display_only": true,
+  "model_inputs_changed": false,
+  "overall_rows": 345,
+  "excluded_diagnosis_rows": 14,
+  "features": [
+    {
+      "code": "R09",
+      "modality": "diagnosis",
+      "rank": 1,
+      "zh": "循环或呼吸系统症状",
+      "en": "Circulatory/respiratory symptoms"
+    },
+    {
+      "code": "R07",
+      "modality": "diagnosis",
+      "rank": 2,
+      "zh": "胸痛记录",
+      "en": "Chest pain record"
+    },
+    {
+      "code": "RX_B01AC04",
+      "modality": "medication",
+      "rank": 3,
+      "zh": "氯吡格雷使用记录",
+      "en": "Clopidogrel record"
+    },
+    {
+      "code": "R42",
+      "modality": "diagnosis",
+      "rank": 4,
+      "zh": "头晕记录",
+      "en": "Dizziness record"
+    },
+    {
+      "code": "RX_C01DA02",
+      "modality": "medication",
+      "rank": 5,
+      "zh": "硝酸甘油使用记录",
+      "en": "Glyceryl trinitrate record"
+    },
+    {
+      "code": "LAB_B.INFILTRATION",
+      "modality": "laboratory",
+      "rank": 6,
+      "zh": "血清渗透压（标签待字典复核）",
+      "en": "Serum osmolality (dictionary confirmation pending)"
+    },
+    {
+      "code": "LAB_BUN/CR",
+      "modality": "laboratory",
+      "rank": 7,
+      "zh": "尿素氮/肌酐比值",
+      "en": "BUN/creatinine"
+    },
+    {
+      "code": "RX_C02CA06",
+      "modality": "medication",
+      "rank": 8,
+      "zh": "乌拉地尔使用记录",
+      "en": "Urapidil record"
+    },
+    {
+      "code": "R00",
+      "modality": "diagnosis",
+      "rank": 9,
+      "zh": "心率或心律异常记录",
+      "en": "Heart-rate/rhythm symptom record"
+    },
+    {
+      "code": "RX_C01DA08",
+      "modality": "medication",
+      "rank": 10,
+      "zh": "硝酸异山梨酯使用记录",
+      "en": "Isosorbide dinitrate record"
+    },
+    {
+      "code": "RX_C01EB15",
+      "modality": "medication",
+      "rank": 11,
+      "zh": "曲美他嗪使用记录",
+      "en": "Trimetazidine record"
+    },
+    {
+      "code": "RX_C01DA14",
+      "modality": "medication",
+      "rank": 12,
+      "zh": "单硝酸异山梨酯使用记录",
+      "en": "Isosorbide mononitrate record"
+    },
+    {
+      "code": "I10",
+      "modality": "diagnosis",
+      "rank": 13,
+      "zh": "高血压记录",
+      "en": "Hypertension record"
+    },
+    {
+      "code": "LAB_ALT",
+      "modality": "laboratory",
+      "rank": 14,
+      "zh": "谷丙转氨酶",
+      "en": "ALT"
+    },
+    {
+      "code": "RX_B01AC06",
+      "modality": "medication",
+      "rank": 15,
+      "zh": "阿司匹林使用记录",
+      "en": "Aspirin record"
+    },
+    {
+      "code": "RX_C02DD01",
+      "modality": "medication",
+      "rank": 16,
+      "zh": "RX_C02DD01",
+      "en": "RX_C02DD01"
+    },
+    {
+      "code": "E119",
+      "modality": "diagnosis",
+      "rank": 17,
+      "zh": "2型糖尿病记录",
+      "en": "Type 2 diabetes record"
+    },
+    {
+      "code": "R93",
+      "modality": "diagnosis",
+      "rank": 18,
+      "zh": "R93",
+      "en": "R93"
+    },
+    {
+      "code": "RX_C05CA04",
+      "modality": "medication",
+      "rank": 19,
+      "zh": "RX_C05CA04",
+      "en": "RX_C05CA04"
+    },
+    {
+      "code": "LAB_ALD",
+      "modality": "laboratory",
+      "rank": 20,
+      "zh": "醛固酮",
+      "en": "Aldosterone"
+    },
+    {
+      "code": "LAB_NTPROBNP",
+      "modality": "laboratory",
+      "rank": 21,
+      "zh": "NT-proBNP",
+      "en": "NT-proBNP"
+    },
+    {
+      "code": "RX_C10AA05",
+      "modality": "medication",
+      "rank": 22,
+      "zh": "RX_C10AA05",
+      "en": "RX_C10AA05"
+    },
+    {
+      "code": "LAB_CTN",
+      "modality": "laboratory",
+      "rank": 23,
+      "zh": "LAB_CTN",
+      "en": "LAB_CTN"
+    },
+    {
+      "code": "RX_C08CA06",
+      "modality": "medication",
+      "rank": 24,
+      "zh": "RX_C08CA06",
+      "en": "RX_C08CA06"
+    },
+    {
+      "code": "RX_C07AB07",
+      "modality": "medication",
+      "rank": 25,
+      "zh": "RX_C07AB07",
+      "en": "RX_C07AB07"
+    }
+  ]
+}
