@@ -38,8 +38,10 @@ def resources():
     cfg = json.loads((package / 'config/input_config.json').read_text(encoding='utf-8'))
     models = {}
     for name in ['02', '03']:
-        with (package / f'weights/model_{name}.pt').open('rb') as handle:
-            models[name] = torch.jit.load(handle, map_location='cpu').eval()
+        # Load from an independent byte buffer: supports Unicode Windows paths
+        # and avoids hosted Python file-stream seek errors.
+        weights = io.BytesIO((package / f'weights/model_{name}.pt').read_bytes())
+        models[name] = torch.jit.load(weights, map_location='cpu').eval()
     return package, modules[0], modules[1], cfg, models
 
 def sample_path():
