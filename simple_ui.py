@@ -250,5 +250,5 @@ def main(public_demo=False):
     with st.sidebar.expander(t('高级选项','Advanced options')):
         if role=='doctor':st.selectbox(t('研究权重（身份待确认）','Research weights (identity unverified)'),['02','03'],key='simple_weight')
         st.caption(t('此研究原型尚未验证为可独立指导治疗或随访间隔的临床系统。','This research prototype is not validated to independently direct treatment or follow-up intervals.'))
-        if not public_demo:st.link_button(t('打开研究分析与医院数据审计','Open research analysis and hospital audit'),'?workspace=research&lang='+lang)
+        st.link_button(t('打开研究分析' if public_demo else '打开研究分析与医院数据审计','Open research analysis' if public_demo else 'Open research analysis and hospital audit'),'?workspace=research&lang='+lang)
         st.caption(t('医院接口：本地 /v1/convert 与 /v1/predict 已提供开发入口，尚未连接实时医院系统。','Hospital integration: local /v1/convert and /v1/predict development endpoints are provided; no live EHR system is connected.'))
