@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-22",
+  "status": "research_only_not_validated",
+  "deployable": false,
+  "clinical_target_events_available": 0,
+  "patients": 1037,
+  "train_patients": 725,
+  "test_patients": 312,
+  "selected_budget_by_training_cv": 20,
+  "candidate5": [
+    {
+      "code": "RX_B01AC06",
+      "zh": "阿司匹林使用记录",
+      "en": "Aspirin record"
+    },
+    {
+      "code": "E119",
+      "zh": "E11.9诊断编码记录",
+      "en": "E11.9 code recorded"
+    },
+    {
+      "code": "LAB_NTPROBNP",
+      "zh": "NT-proBNP",
+      "en": "NT-proBNP"
+    },
+    {
+      "code": "LAB_APTT",
+      "zh": "活化部分凝血活酶时间",
+      "en": "APTT"
+    },
+    {
+      "code": "RX_C01CA03",
+      "zh": "去甲肾上腺素使用记录",
+      "en": "Norepinephrine record"
+    }
+  ],
+  "results_12m": [
+    {
+      "extra_features": 0,
+      "mae_pp": 5.76,
+      "ci_low": 4.89,
+      "ci_high": 6.68,
+      "teacher_top10_overlap_pct": 29.0
+    },
+    {
+      "extra_features": 5,
+      "mae_pp": 5.24,
+      "ci_low": 4.45,
+      "ci_high": 6.14,
+      "teacher_top10_overlap_pct": 48.4
+    },
+    {
+      "extra_features": 10,
+      "mae_pp": 5.43,
+      "ci_low": 4.65,
+      "ci_high": 6.3,
+      "teacher_top10_overlap_pct": 41.9
+    },
+    {
+      "extra_features": 20,
+      "mae_pp": 5.53,
+      "ci_low": 4.78,
+      "ci_high": 6.38,
+      "teacher_top10_overlap_pct": 41.9
+    }
+  ],
+  "clinical_accuracy_preserved": null,
+  "clinical_auc": null,
+  "clinical_calibration": null,
+  "source": "Local hospital snapshot distillation to weight02; original development membership unknown",
+  "publication": "Aggregate feasibility results only, no patient rows or student artifact",
+  "unit_note_zh": "BUN/Cr缺少训练单位；ALT源单位U/L与配置IU/L尚未核定，本实验不作默认换算。HbA1与HbA1c为不同代码，不合并。",
+  "unit_note_en": "BUN/Cr has no training unit. ALT source U/L and configured IU/L remain unverified; no implicit conversion. HbA1 and HbA1c are distinct codes."
+}

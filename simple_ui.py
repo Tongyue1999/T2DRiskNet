@@ -130,49 +130,34 @@ def render_result(records,frame,manifest,assessment,lang,role,synthetic=False,sp
 
 def individual(lang,public_demo,role):
     zh=lang=='zh';t=lambda a,b:a if zh else b
-    mode=st.radio(t('从哪里开始','Start here'),[t('先看一位示例患者','View an example patient'),t('创建模拟病例' if public_demo else '填写关键资料试算','Create an invented case' if public_demo else 'Try key patient data')],horizontal=True,key='simple_case_mode')
+    mode=st.radio(t('从哪里开始','Start here'),[t('先看一位示例患者','View an example patient'),t('精简模型研究进度','Reduced-input study')],horizontal=True,key='simple_case_mode')
     if mode in ['先看一位示例患者','View an example patient']:
         with st.spinner(t('正在读取示例评估…','Loading example assessment…')):result=load_demo(lang)
         if result is None:return
         frame,ex,manifest=result
         render_result(example_patient(),frame,manifest,ASSESSMENT,lang,role,True);return
-    st.caption(t('少量资料入口用于研究试算，尚不是经验证的简化模型。','The few-input route is a research trial, not a validated reduced-feature model.'))
-    with st.form('simple_manual_form'):
-        a,b=st.columns(2)
-        dob=a.date_input(t('出生日期','Date of birth'),value=None,min_value=date(1900,1,1),max_value=date.today())
-        gender=b.selectbox(t('性别','Sex'),[t('请选择','Choose'),t('男性','Male'),t('女性','Female')])
-        diabetes=a.date_input(t('首次记录2型糖尿病的日期','First recorded type 2 diabetes'),value=None,min_value=date(1900,1,1))
-        assessment=b.date_input(t('本次评估日期','Assessment date'),value=date.today())
-        prior=a.selectbox(t('是否已患冠心病、心衰或脑血管病','Prior coronary, heart-failure or cerebrovascular disease'),[t('待核实','Uncertain'),t('无','No'),t('有','Yes')])
-        hypertension=b.checkbox(t('有已记录的高血压','Recorded hypertension'))
-        lab_day=st.date_input(t('以下检验的日期（有结果时填写）','Date of the measurements below'),value=None)
-        fields={};cols=st.columns(2)
-        for i,token in enumerate(['LAB_HBA1C','LAB_GLU','LAB_NTPROBNP','LAB_ALT']):
-            label=LABS[token][0 if zh else 1]+' ('+LABS[token][2]+')'
-            fields[token]=cols[i%2].number_input(label,min_value=0.,value=None,step=.1)
-        fictional=st.checkbox(t('全部资料均为虚构病例','All entries describe an invented case')) if public_demo else False
-        submit=st.form_submit_button(t('查看试算结果','View trial result'),type='primary')
-    assessment=assessment.isoformat()
-    if submit:
-        try:
-            if not dob or not diabetes or gender in ['请选择','Choose'] or prior not in ['无','No']:raise ValueError(t('请补全人口学资料及糖尿病日期，并核实无既往目标心血管病。','Complete demographics and diabetes date, and verify no prior target cardiovascular disease.'))
-            if public_demo and not fictional:raise ValueError(t('公开演示只使用虚构资料。','Use invented data only in the public demo.'))
-            if not dob<=diabetes<=date.fromisoformat(assessment):raise ValueError(t('请检查出生、诊断和评估日期的先后顺序。','Check birth, diagnosis and assessment chronology.'))
-            events=[{'admdate':diabetes.isoformat(),'codes':'E11.9'}]
-            if hypertension:events.append({'admdate':diabetes.isoformat(),'codes':'I10'})
-            for token,val in fields.items():
-                if val is not None:
-                    if lab_day is None or not dob<=lab_day<=date.fromisoformat(assessment):raise ValueError(t('请补充有效检验日期。','Provide a valid measurement date.'))
-                    events.append({'admdate':lab_day.isoformat(),'codes':token,'value':val,'unit':LABS[token][2]})
-            records={'SYNTHETIC-MANUAL' if public_demo else 'LOCAL-MANUAL':{'birthdate':dob.isoformat(),'gender':'男' if gender in ['男性','Male'] else '女','events':events}}
-            check_model_mapping(records)
-            with st.spinner(t('正在计算…','Calculating…')):f,ex,m=infer(records,'current',assessment)
-            st.session_state['simple_manual_result']=(records,f,m,assessment,public_demo)
-            st.session_state['simple_manual_signature']=(str(dob),str(diabetes),str(gender),str(prior),hypertension,str(lab_day),tuple(fields.items()),assessment)
-        except Exception as exc:st.error(str(exc));st.session_state.pop('simple_manual_result',None)
-    signature=(str(dob),str(diabetes),str(gender),str(prior),hypertension,str(lab_day),tuple(fields.items()),assessment)
-    if st.session_state.get('simple_manual_signature')==signature and 'simple_manual_result' in st.session_state:
-        records,f,m,assess,syn=st.session_state['simple_manual_result'];render_result(records,f,m,assess,lang,role,syn,True)
+    st.subheader(t('少填几个指标，能否保留预测能力？','Can fewer inputs preserve prediction performance?'))
+    st.info(t('已完成一轮精简模型探索训练，尚未通过真实结局验证，因此暂不提供个人风险计算。','An exploratory reduced model has been trained. Patient-level risk calculation is unavailable pending real-outcome validation.'))
+    path=ROOT/'reduced_status.json'
+    if not path.exists():
+        st.caption(t('研究结果尚待维护者核验。请使用完整病历评估入口。','Study results await verification. Use the full-record assessment route.'));return
+    status=json.loads(path.read_text(encoding='utf-8'))
+    st.write(t('目前仅能比较精简模型与完整模型输出是否接近，不能证明对真实事件的预测准确率相同。','Current comparisons measure agreement with the full model, not accuracy for actual clinical events.'))
+    chosen=next(r for r in status['results_12m'] if r['extra_features']==status['selected_budget_by_training_cv'])
+    a,b=st.columns(2)
+    a.metric(t('12个月风险平均差','Mean 12-month risk difference'),str(chosen['mae_pp'])+t(' 个百分点',' pp'))
+    b.metric(t('最高风险10%名单重合','Top-decile list overlap'),str(chosen['teacher_top10_overlap_pct'])+'%')
+    st.caption(t(f"训练阶段选定：年龄、性别 + {status['selected_budget_by_training_cv']}项记录；{status['test_patients']}人留出比较。数值均为与完整模型的差异。",f"Training selected age/sex + {status['selected_budget_by_training_cv']} record features; {status['test_patients']} held-out patients. Values compare against the teacher model."))
+    with st.expander(t('查看候选指标与比较详情','Candidate features and comparison details')):
+        st.write(t('5项候选组合（另含年龄、性别）：','Five-feature candidate panel (+ age/sex):'))
+        for f in status['candidate5']:st.write('• '+f['zh' if zh else 'en'])
+        st.caption(t('这些是病历中的记录标志或检验值，并非推荐患者自填的最终组合。E11.9有无记录不等于是否患糖尿病；所有研究对象均须符合2型糖尿病纳入条件。','These are record indicators or laboratory values, not a final self-entry panel. E11.9 recording is not diabetes presence; all study patients meet type-2-diabetes eligibility.'))
+        rows=[{t('额外特征数','Extra features'):r['extra_features'],t('12个月平均差（百分点）','12m mean difference (pp)'):r['mae_pp'],t('与完整模型最高风险10%重合','Teacher top-decile overlap'):str(r['teacher_top10_overlap_pct'])+'%'} for r in status['results_12m']]
+        st.dataframe(pd.DataFrame(rows),hide_index=True,use_container_width=True)
+        st.caption(status['unit_note_zh' if zh else 'unit_note_en'])
+    st.warning(t('当前可分析队列尚无已确认的首次目标心血管事件可供监督训练。需要补齐并审核事件与随访，才能判断精简后是否保持临床准确性。','The analysis cohort has no adjudicated incident target events available for supervised training. Event and follow-up adjudication are needed to assess clinical accuracy preservation.'))
+    st.caption(t('请通过“导入一批患者”使用完整病历模型。精简模型未替换原模型，未接入患者报告或医院API。','Use Import a patient group for full-record inference. The student has not replaced the original model and is not used in patient reports or the hospital API.'))
+
 
 def batch(lang,public_demo):
     zh=lang=='zh';t=lambda a,b:a if zh else b
