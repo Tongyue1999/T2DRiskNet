@@ -210,30 +210,5 @@ def batch(lang,public_demo):
     except Exception as exc:st.error(t('还需要补充或核对：','Please complete or check: ')+str(exc))
 
 def main(public_demo=False):
-    st.set_page_config(page_title='T2DRiskNet · Patient Review',page_icon='🫀',layout='wide')
-    language=st.sidebar.selectbox('语言 / Language',['中文','English'],index=1 if st.query_params.get('lang')=='en' else 0,key='simple_language')
-    lang='zh' if language=='中文' else 'en';zh=lang=='zh';t=lambda a,b:a if zh else b
-    role_label=st.sidebar.radio(t('我是','View as'),[t('医生','Clinician'),t('患者','Patient')],key='simple_role');role='doctor' if role_label in ['医生','Clinician'] else 'patient'
-    st.markdown('''<style>.stApp{background:#f5f8fa;color:#173747}.block-container{max-width:1180px;padding-top:2rem}h1,h2,h3{color:#153b4d}.welcome{padding:25px 28px;border-radius:20px;background:linear-gradient(120deg,#143c50,#176a70);color:white;margin-bottom:18px}.welcome h1{font-size:30px;color:white;margin:0 0 9px}.welcome p{margin:0;color:#e2f0f2}[data-testid="stMetric"]{background:white;border:1px solid #dde7ec;border-radius:14px;padding:16px}.visit-card{padding:20px;border-radius:14px;border:1px solid #cfe4df;background:#eaf7f2;color:#185e53;font-size:21px;font-weight:600}[data-testid="stSidebar"]{background:#edf2f6}button[kind="primary"]{background:#126a73;border-color:#126a73}</style>''',unsafe_allow_html=True)
-    st.markdown('<header class="welcome"><h1>'+t('看清风险，安排下一步','Understand risk. Plan the next step.')+'</h1><p>'+t('T2DRiskNet · 糖尿病患者心血管风险评估','T2DRiskNet · Cardiovascular risk assessment in diabetes')+'</p></header>',unsafe_allow_html=True)
-    st.caption(t('研究演示 · 真实模型计算 · 示例患者完全虚构' if public_demo else '本地研究试用 · 资料保留本机 · 示例患者完全虚构','Research demo · real model inference · invented example patients' if public_demo else 'Local research edition · records remain local · invented examples'))
-    if role=='patient':
-        approved=st.session_state.get('simple_latest_approved')
-        if approved:
-            st.caption(t('医生已审核的报告','Clinician-reviewed report'))
-            render_result(approved['records'],approved['frame'],approved['manifest'],approved['assessment'],lang,'patient',approved['synthetic'],approved['sparse'],approved['review'],approved['model'])
-        else:
-            st.caption(t('先了解一份虚构患者示例；正式报告由医生审核后提供。','Explore an invented patient example; your clinician provides the reviewed report.'))
-            result=load_demo(lang)
-            if result is None:return
-            f,ex,m=result
-            render_result(example_patient(),f,m,ASSESSMENT,lang,'patient',True)
-    else:
-        route=st.radio(t('您想做什么？','What would you like to do?'),[t('评估一位患者','Assess one patient'),t('导入一批患者','Import a patient group')],horizontal=True,key='simple_route')
-        if route in ['评估一位患者','Assess one patient']:individual(lang,public_demo,role)
-        else:batch(lang,public_demo)
-    with st.sidebar.expander(t('高级选项','Advanced options')):
-        if role=='doctor':st.selectbox(t('研究权重（身份待确认）','Research weights (identity unverified)'),['02','03'],key='simple_weight')
-        st.caption(t('此研究原型尚未验证为可独立指导治疗或随访间隔的临床系统。','This research prototype is not validated to independently direct treatment or follow-up intervals.'))
-        st.link_button(t('打开研究分析' if public_demo else '打开研究分析与医院数据审计','Open research analysis' if public_demo else 'Open research analysis and hospital audit'),'?workspace=research&lang='+lang)
-        st.caption(t('医院接口：本地 /v1/convert 与 /v1/predict 已提供开发入口，尚未连接实时医院系统。','Hospital integration: local /v1/convert and /v1/predict development endpoints are provided; no live EHR system is connected.'))
+    from product_ui import main as product_main
+    product_main(public_demo)

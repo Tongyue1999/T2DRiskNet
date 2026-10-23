@@ -10,9 +10,9 @@ The default app now has two clinician routes: individual assessment and batch im
 
 The local edition accepts common CSV/TSV, Excel multi-sheet, patient JSON and linked-table ZIP exports, with explicit field/code/unit confirmation. It does not understand every proprietary EHR format. The public cloud edition uses invented records and does not accept hospital uploads. See [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) for the loopback development API and supported mappings.
 
-The former sparse-input form is replaced by a reduced-model research status page. Exploratory teacher distillation is complete, but clinical accuracy preservation is unestablished; no student model is deployed. Cohort attribution is not personal attribution or a treatment effect. The plotting exclusion of Z/C/D0–D4 diagnoses changes the display only. Follow-up requires clinician confirmation; the example date is a fictional clinician preset.
+The product offers hospital-file import and key-record entry, with five risk windows and an interactive digital patient portrait. Key-record mode runs original longitudinal weights on dated supplied records; it is not a validated reduced model. The exploratory distilled student remains undeployed. Cohort attribution is not personal attribution or a treatment effect. The plotting exclusion of Z/C/D0–D4 diagnoses changes the display only. Follow-up requires clinician confirmation; the example date is a fictional clinician preset.
 
-默认只保留“评估一位患者”和“导入一批患者”，患者端查看示例或医生已审核报告。支持常见格式，不承诺任意医院资料无需核对即可适配。少量指标入口改为精简模型研究进度；尚不能证明保留临床准确性，未部署精简模型，复查日期由医生确认。
+默认只保留“评估一位患者”和“导入一批患者”，患者端查看示例或医生已审核报告。支持常见格式，不承诺任意医院资料无需核对即可适配。现有两个输入入口：医院数据上传和关键资料录入；输出五个时间窗风险及可交互患者画像。关键资料模式使用原模型，尚未独立验证；未部署探索学生模型，复查由医生确认。
 
 ## Run / 运行
 
