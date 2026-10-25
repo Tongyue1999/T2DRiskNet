@@ -247,7 +247,13 @@ def render_assessment(active,lang,role):
     st.markdown('<div class="entry-label">'+t('评估结果','ASSESSMENT')+'</div><div class="input-title">'+t('患者数字画像','Patient digital profile')+'</div>',unsafe_allow_html=True)
     st.caption(t('示例病例 · ' if active['synthetic'] else '本次评估 · ','Invented case · ' if active['synthetic'] else 'Current assessment · ')+str(row.assessment_date)+(' · '+t('关键资料试算','Key-data trial') if active['mode']=='key' else ''))
     selected=st.select_slider(t('探索未来风险','Explore future risk'),options=HORIZONS,value=12,format_func=lambda h:str(h)+t('个月',' months'),key='product_horizon')
-    st.markdown(risk_cards(row,model,lang,selected),unsafe_allow_html=True)
+    def choose_window(h):st.session_state['product_horizon']=h
+    with st.container(key='risk_window_buttons'):
+        for col,h in zip(st.columns(5,gap='small'),HORIZONS):
+            endpoint=date.fromisoformat(str(row.assessment_date))+timedelta(days=h*30)
+            label=f'{h}'+t('个月',' months')+f'\n\n**{float(row[f"risk_{model}_{h}"]):.1%}**\n\n'+str(endpoint)
+            if row.get('model_family')=='reduced' and h==60:label+='\n\n'+t('待验证','Unvalidated')
+            col.button(label,key=f'product_window_{h}',type='primary' if h==selected else 'secondary',use_container_width=True,on_click=choose_window,args=(h,))
     st.markdown(portrait_html(rec,row,model,selected,lang,active['synthetic']),unsafe_allow_html=True)
     from simple_ui import latest_labs
     labs=latest_labs(rec,str(row.assessment_date));tokens=[c for c in ['LAB_HBA1C','LAB_CR','SBP','DBP','LAB_LDL','LAB_GLU','LAB_NTPROBNP','LAB_ALT','LAB_CTNT'] if c in labs][:6]
