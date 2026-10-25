@@ -49,7 +49,9 @@ def build_key_record(dob,gender,diabetes,assessment,prior,diagnoses,history_date
 
 def key_input(lang,public_demo):
     zh=lang=='zh';t=lambda a,b:a if zh else b
-    st.markdown('<div class="entry-label">02 / '+t('简单预测','SIMPLE PREDICTION')+'</div><div class="input-title">'+t('填写5项指标','Enter 5 key inputs')+'</div><div class="mini-note">'+t('研究试用','Research trial')+'</div>',unsafe_allow_html=True)
+    note=t('研究试用','Research trial')
+    scope=t('适用于确诊2型糖尿病≥90天且无既往冠心病、心衰或脑血管病的成人。','For adults with type 2 diabetes for at least 90 days and no prior coronary, heart-failure or cerebrovascular disease.')
+    st.markdown('<div class="entry-label">02 / '+t('简单预测','SIMPLE PREDICTION')+'</div><div class="input-title">'+t('填写5项指标','Enter 5 key inputs')+'</div><div class="mini-note" title="'+html.escape(scope,quote=True)+'">'+note+'</div>',unsafe_allow_html=True)
     example=st.session_state.get('product_editor_example',True)
     a,b=st.columns(2)
     if a.button(t('载入示例','Load example'),use_container_width=True):
@@ -78,13 +80,9 @@ def key_input(lang,public_demo):
                 dates[code]=b.date_input(t(zhlabel+'检测日期',enlabel+' date'),value=None,max_value=assessment)
             aspirin=st.selectbox(t('近一年阿司匹林使用记录','Recorded aspirin use in the past year'),[t('不清楚','Uncertain'),t('有明确记录','Documented'),t('无明确记录','Not documented')])
             values['RX_B01AC06']=1 if aspirin==t('有明确记录','Documented') else 0 if aspirin==t('无明确记录','Not documented') else None
-        eligible=st.checkbox(t('确诊2型糖尿病≥90天，且无既往冠心病、心衰或脑血管病','Type 2 diabetes for ≥90 days; no prior coronary, heart-failure or cerebrovascular disease'),value=example)
-        fictional=st.checkbox(t('本次填写的是虚构病例','These entries describe an invented case'),value=example) if public_demo else False
         submit=st.form_submit_button(t('生成风险画像 →','Generate risk profile →'),type='primary',use_container_width=True)
     if submit:
         try:
-            if not eligible:raise ValueError(t('请确认适用人群。','Confirm eligibility.'))
-            if public_demo and not fictional:raise ValueError(t('公开演示请仅使用虚构病例。','Use invented cases in the public demo.'))
             from simple_predictor import assess
             dates={c:day.isoformat() if day else None for c,day in dates.items()}
             records,f,ex,m=assess(values,assessment.isoformat(),dates,extended,public_demo or example)
