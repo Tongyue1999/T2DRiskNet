@@ -1,6 +1,7 @@
 """Interactive bilingual product: import or key records, then actual model inference."""
 from pathlib import Path
-from datetime import date,timedelta
+from datetime import date,timedelta,datetime
+from zoneinfo import ZoneInfo
 import copy,hashlib,html,json
 import pandas as pd
 import streamlit as st
@@ -24,13 +25,13 @@ def saved_assessment(records,f,ex,m,assessment,synthetic,mode):
 def use_example():
     records,f,ex,m=product_example()
     st.session_state['product_empty']=False
-    st.session_state['product_result']=saved_assessment(records,f,ex,m,ASSESSMENT,True,'key')
+    st.session_state['product_result']=saved_assessment(records,f,ex,m,str(f.iloc[0].assessment_date),True,'key')
 
-@st.cache_data(show_spinner=False,max_entries=1)
 def product_example():
     from simple_predictor import assess
-    day=(date.fromisoformat(ASSESSMENT)-timedelta(days=7)).isoformat()
-    return assess({'age':62,'male':1,'I10':1,'LAB_HBA1C':7.8,'LAB_CR':85.},ASSESSMENT,{'LAB_HBA1C':day,'LAB_CR':day},synthetic=True)
+    now=datetime.now(ZoneInfo('Asia/Shanghai'));anchor=now.date().isoformat()
+    day=(now.date()-timedelta(days=7)).isoformat()
+    return assess({'age':62,'male':1,'I10':1,'LAB_HBA1C':7.8,'LAB_CR':85.},anchor,{'LAB_HBA1C':day,'LAB_CR':day},synthetic=True,diagnosis_date='2019-03-01',assessed_at=now.isoformat())
 
 def build_key_record(dob,gender,diabetes,assessment,prior,diagnoses,history_date,medications,med_date,labs,lab_date,synthetic):
     """Only explicit dated records, no silent clinical negatives or synthetic old labs."""
@@ -66,28 +67,32 @@ def key_input(lang,public_demo):
         age=a.number_input(t('年龄（岁）','Age (years)'),min_value=18,max_value=119,value=62 if example else None,step=1)
         gender=b.selectbox(t('性别','Sex'),[t('请选择','Choose'),t('男','Male'),t('女','Female')],index=1 if example else 0)
         ht=st.selectbox(t('既往高血压记录','Recorded hypertension'),[t('不清楚','Uncertain'),t('有明确记录','Documented'),t('无明确记录','Not documented')],index=1 if example else 0)
-        assessment=st.date_input(t('评估日期','Assessment date'),date.fromisoformat(ASSESSMENT) if example else date.today())
+        today=datetime.now(ZoneInfo('Asia/Shanghai')).date()
+        diagnosis=st.date_input(t('2型糖尿病确诊日期','Type 2 diabetes diagnosis date'),date(2019,3,1) if example else None,min_value=date(1900,1,1),max_value=today)
+        assessment=st.date_input(t('评估日期（填写当天）','Assessment date (today)'),today,disabled=True)
         values={'age':age,'male':1 if gender==t('男','Male') else 0 if gender==t('女','Female') else None,'I10':1 if ht==t('有明确记录','Documented') else 0 if ht==t('无明确记录','Not documented') else None}
         dates={};default_day=assessment-timedelta(days=7)
         for code,zhlabel,enlabel,unit,value in [('LAB_HBA1C','糖化血红蛋白 HbA1c','HbA1c','%',7.8),('LAB_CR','血清肌酐','Serum creatinine','μmol/L',85.)]:
             a,b=st.columns([1.1,1])
             values[code]=a.number_input(t(zhlabel,enlabel)+' ('+unit+')',min_value=0.,value=value if example else None,step=.1)
-            dates[code]=b.date_input(t(zhlabel+'检测日期',enlabel+' date'),default_day if example else None,max_value=assessment)
+            dates[code]=b.date_input(t(zhlabel+'报告日期',enlabel+' report date'),default_day if example else None,max_value=assessment)
         with st.expander(t('补充指标（可选）','Additional inputs (optional)'),expanded=False):
             extended=st.checkbox(t('加入补充指标','Use additional inputs'),value=False)
             for code,zhlabel,enlabel,unit in [('SBP','收缩压','Systolic BP','mmHg'),('DBP','舒张压','Diastolic BP','mmHg'),('LAB_LDL','LDL胆固醇','LDL cholesterol','mmol/L'),('LAB_GLU','血糖','Glucose','mmol/L')]:
                 a,b=st.columns([1.1,1]);values[code]=a.number_input(t(zhlabel,enlabel)+' ('+unit+')',min_value=0.,value=None,step=.1)
-                dates[code]=b.date_input(t(zhlabel+'检测日期',enlabel+' date'),value=None,max_value=assessment)
+                dates[code]=b.date_input(t(zhlabel+'报告日期',enlabel+' report date'),value=None,max_value=assessment)
             aspirin=st.selectbox(t('近一年阿司匹林使用记录','Recorded aspirin use in the past year'),[t('不清楚','Uncertain'),t('有明确记录','Documented'),t('无明确记录','Not documented')])
             values['RX_B01AC06']=1 if aspirin==t('有明确记录','Documented') else 0 if aspirin==t('无明确记录','Not documented') else None
         submit=st.form_submit_button(t('生成风险画像 →','Generate risk profile →'),type='primary',use_container_width=True)
     if submit:
         try:
             from simple_predictor import assess
+            if diagnosis is None:raise ValueError(t('请填写2型糖尿病确诊日期。','Enter the type 2 diabetes diagnosis date.'))
+            submitted=datetime.now(ZoneInfo('Asia/Shanghai'))
             dates={c:day.isoformat() if day else None for c,day in dates.items()}
-            records,f,ex,m=assess(values,assessment.isoformat(),dates,extended,public_demo or example)
+            records,f,ex,m=assess(values,submitted.date().isoformat(),dates,extended,public_demo or example,diagnosis_date=diagnosis.isoformat(),assessed_at=submitted.isoformat())
             st.session_state['product_empty']=False;st.session_state.pop('product_approved',None)
-            st.session_state['product_result']=saved_assessment(records,f,ex,m,assessment.isoformat(),public_demo or example,'reduced')
+            st.session_state['product_result']=saved_assessment(records,f,ex,m,submitted.date().isoformat(),public_demo or example,'reduced')
         except Exception as e:
             st.session_state.pop('product_result',None);st.session_state.pop('product_approved',None);st.session_state['product_empty']=True;st.error(str(e))
 
@@ -274,7 +279,7 @@ def main(public_demo=False):
         active=st.session_state.get('product_approved')
         if active is None:
             try:
-                records,f,ex,m=product_example();active=saved_assessment(records,f,ex,m,ASSESSMENT,True,'key')
+                records,f,ex,m=product_example();active=saved_assessment(records,f,ex,m,str(f.iloc[0].assessment_date),True,'key')
             except Exception:pass
         if active:render_assessment(active,lang,role)
         else:st.info(t('请由医生完成评估后查看报告。','Your clinician can provide a reviewed assessment.'))

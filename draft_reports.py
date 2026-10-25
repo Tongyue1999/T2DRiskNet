@@ -5,10 +5,12 @@ from risk_profile import profile_html
 def patient_draft(row,model='02',lang='zh',measurements=None):
     zh=lang=='zh';t=lambda a,b:a if zh else b;esc=lambda x:html.escape(str(x))
     title=t('患者风险报告 · 待医生审核','Patient risk report · pending clinician review')
-    warning=t('历史资料研究草稿，尚未进行临床审核。不是当前诊断、治疗或复查医嘱。','Historical research draft; not clinically reviewed. This is not a current diagnosis, treatment or follow-up order.')
-    fields=[(t('匿名编号','Pseudonymous ID'),row['patient_key']),(t('历史评估日期','Historical assessment date'),row['assessment_date']),
+    historical=row.get('model_family')!='reduced'
+    warning=t('历史资料研究草稿，尚未进行临床审核。不是当前诊断、治疗或复查医嘱。','Historical research draft; not clinically reviewed. This is not a current diagnosis, treatment or follow-up order.') if historical else t('研究草稿，待医生审核；不是诊断、治疗或复查医嘱。','Research draft pending clinician review; not a diagnosis, treatment or follow-up order.')
+    fields=[(t('匿名编号','Pseudonymous ID'),row['patient_key']),(t('历史评估日期' if historical else '评估日期','Historical assessment date' if historical else 'Assessment date'),row['assessment_date']),
             (t('模型权重','Model weights'),'model_'+model),(t('审核医生','Reviewing clinician'),t('待确认','Pending')),
             (t('复查日期','Review date'),t('待医生确认；未自动生成','Pending clinician confirmation; not generated'))]
+    if row.get('diabetes_diagnosis_date'):fields.insert(2,(t('2型糖尿病确诊日期','Type 2 diabetes diagnosis date'),row['diabetes_diagnosis_date']))
     body='<div class="notice">'+warning+'</div><table>'+''.join('<tr><th>'+esc(k)+'</th><td>'+esc(v)+'</td></tr>' for k,v in fields)+'</table>'
     body+=profile_html(row,model,lang)
     if measurements:

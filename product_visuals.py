@@ -29,6 +29,7 @@ def portrait_html(rec,row,model,horizon,lang,synthetic=False):
     codes={str(e['codes']).replace('.','') for e in rec['events'] if e['admdate']<=str(row['assessment_date'])}
     labels=[t('2型糖尿病','Type 2 diabetes')]
     if any(c.startswith('I10') for c in codes) or rec.get('_simple_inputs',{}).get('I10')==1:labels.append(t('高血压记录','Hypertension record'))
+    if rec.get('diabetes_diagnosis_date'):labels.append(t('确诊于 ','Diagnosed ')+rec['diabetes_diagnosis_date'])
     labels.append(t('研究试用','Research trial') if row.get('input_mode') in ['key','reduced'] else t('病历记录','Clinical history'))
     dots=''.join('<i'+(' class="on"' if n<int(round(r*100)) else '')+'></i>' for n in range(100))
     name=t('示例患者','Example patient') if synthetic else t('患者画像','Patient profile')

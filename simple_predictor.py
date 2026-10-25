@@ -40,11 +40,14 @@ def predict_values(values,model='simple5',bundle=None):
     if not np.isfinite(out).all() or any(not 0<=x<=1 for x in out):raise ValueError('Invalid probability')
     return out
 
-def assess(values,assessment,lab_dates,extended=False,synthetic=False):
+def assess(values,assessment,lab_dates,extended=False,synthetic=False,diagnosis_date=None,assessed_at=None):
     anchor=date.fromisoformat(str(assessment));model='simple10' if extended else 'simple5'
     if values.get('age') is None or not 18<=float(values['age'])<120:raise ValueError('请填写18–119岁的年龄 / Enter age 18–119.')
     if values.get('male') not in [0,1]:raise ValueError('请选择性别 / Select sex.')
     if values.get('I10') not in [0,1]:raise ValueError('请核实既往高血压记录 / Confirm recorded hypertension history.')
+    diagnosis=date.fromisoformat(str(diagnosis_date)) if diagnosis_date is not None else None
+    if diagnosis is not None and diagnosis>anchor:raise ValueError('确诊日期不能晚于填写日期 / Diagnosis cannot follow assessment.')
+    if diagnosis is not None and (anchor-diagnosis).days<90:raise ValueError('当前研究模型适用于确诊至少90天者 / This research model requires at least 90 days since diagnosis.')
     if extended and values.get('RX_B01AC06') not in [0,1]:raise ValueError('请核实近一年阿司匹林记录 / Confirm past-year aspirin records.')
     features=load_models()['models'][model]['features'];clean={c:values.get(c) for c in features}
     limits={'LAB_HBA1C':(0,100),'LAB_CR':(0,10000),'SBP':(60,260),'DBP':(30,160),'LAB_LDL':(0,100),'LAB_GLU':(0,1000)}
@@ -62,10 +65,13 @@ def assess(values,assessment,lab_dates,extended=False,synthetic=False):
     row={'patient_key':pid,'assessment_date':anchor.isoformat(),'age':float(clean['age']),'sex':'男' if clean['male'] else '女',
          'model_family':'reduced','input_count':len(features),'matched_events':0,'raw_events':0,'numeric_labs':sum(clean.get(c) is not None for c in limits if c in clean)}
     row.update({f'risk_{model}_{h}':r for h,r in zip(HORIZONS,risks)})
+    if diagnosis is not None:row.update(diabetes_diagnosis_date=diagnosis.isoformat(),diabetes_duration_days=(anchor-diagnosis).days)
+    if assessed_at is not None:row['assessed_at']=str(assessed_at)
     units={'LAB_HBA1C':'%','LAB_CR':'μmol/L','LAB_LDL':'mmol/L','LAB_GLU':'mmol/L','SBP':'mmHg','DBP':'mmHg'}
     events=[{'admdate':str(lab_dates[c]),'codes':c,'value':float(clean[c]),'unit':units[c]} for c in units if c in clean and clean[c] is not None]
     # Age is supplied directly; never invent a birth date or diagnostic event date.
     rec={'gender':row['sex'],'age':row['age'],'events':events,'_simple_inputs':clean}
+    if diagnosis is not None:rec['diabetes_diagnosis_date']=diagnosis.isoformat()
     manifest={'model':model,'model_family':'reduced','input_count':len(features),'status':'RESEARCH_TRIAL','unsupported_validation_horizons':[60],
-              'month_days':30,'source_sha256':hashlib.sha256(json.dumps({'values':clean,'dates':lab_dates,'assessment':str(assessment)},sort_keys=True).encode()).hexdigest()}
+              'month_days':30,'diagnosis_date_used_as_predictor':False,'source_sha256':hashlib.sha256(json.dumps({'values':clean,'dates':lab_dates,'assessment':str(assessment),'diagnosis_date':diagnosis_date,'assessed_at':assessed_at},sort_keys=True).encode()).hexdigest()}
     return {rid:rec},pd.DataFrame([row]),pd.DataFrame(columns=['patient_key','reason']),manifest
