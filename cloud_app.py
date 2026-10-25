@@ -1,3 +1,4 @@
+BUILD = 'simple-inputs-20261025'
 from pathlib import Path
 import runpy
 import streamlit as st

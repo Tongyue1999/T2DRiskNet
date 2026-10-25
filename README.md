@@ -6,13 +6,9 @@ Bilingual Streamlit research prototype for longitudinal cardiovascular risk asse
 
 ## Simple clinical view / 简洁版
 
-The default app now has two clinician routes: individual assessment and batch import, with a read-only patient report view. It opens with an entirely invented patient assessed by the real longitudinal model. Chinese and English are available. Advanced research tools remain in `research_app.py`.
+The clinician interface has two routes: hospital-file import and simple prediction. Simple prediction uses five inputs (age, sex, recorded hypertension, HbA1c and creatinine). A collapsed panel adds systolic/diastolic blood pressure, LDL cholesterol, glucose and recorded aspirin use, switching to the corresponding ten-input model when enabled. These are locally trained, code-defined-outcome research models, not the previous teacher-distilled student and not sparse inputs passed to the original longitudinal model. The default invented patient is scored by the five-input runtime. Five-year estimates are explicitly unvalidated. Original full-model inference remains available for hospital-file import. More input data does not establish greater accuracy.
 
-The local edition accepts common CSV/TSV, Excel multi-sheet, patient JSON and linked-table ZIP exports, with explicit field/code/unit confirmation. It does not understand every proprietary EHR format. The public cloud edition uses invented records and does not accept hospital uploads. See [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) for the loopback development API and supported mappings.
-
-The product offers hospital-file import and key-record entry, with five risk windows and an interactive digital patient portrait. Key-record mode runs original longitudinal weights on dated supplied records; it is not a validated reduced model. The exploratory distilled student remains undeployed. Cohort attribution is not personal attribution or a treatment effect. The plotting exclusion of Z/C/D0–D4 diagnoses changes the display only. Follow-up requires clinician confirmation; the example date is a fictional clinician preset.
-
-默认只保留“评估一位患者”和“导入一批患者”，患者端查看示例或医生已审核报告。支持常见格式，不承诺任意医院资料无需核对即可适配。现有两个输入入口：医院数据上传和关键资料录入；输出五个时间窗风险及可交互患者画像。关键资料模式使用原模型，尚未独立验证；未部署探索学生模型，复查由医生确认。
+中英文界面保留“上传医院数据”和“简单预测”。默认填写5项，补充指标折叠显示；使用对应精简模型计算，入口标注研究试用。五年估计待验证，复查安排由医生确认。患者视图只显示示例或已审核报告。公开在线版仅允许虚构病例；真实医院资料保留在本地或院内。高级研究工作区仍可通过 `?workspace=research` 访问。常见文件格式需要核对字段、代码和单位，不承诺任意医院资料无需确认即可适配。
 
 ## Run / 运行
 
@@ -29,9 +25,9 @@ python -m streamlit run app.py --server.address 127.0.0.1 --browser.gatherUsageS
 
 Open `http://127.0.0.1:8501/`; use the sidebar language switch or `?lang=en`.
 
-The product overview opens without model files. Actual inference requires the authorised original bundle under `vendor/`: retain its `requirements.txt`, `scripts/`, `config/`, and `weights/model_02.pt`, `weights/model_03.pt` layout. Install and validate the model runtime locally. The weight identities remain unverified; the app does not label them as a confirmed model-versus-clinical-baseline comparison.
+The input interface opens without model files; simple prediction requires the separately authorised `simple_models.json`. Actual inference requires the authorised original bundle under `vendor/`: retain its `requirements.txt`, `scripts/`, `config/`, and `weights/model_02.pt`, `weights/model_03.pt` layout. Install and validate the model runtime locally. The weight identities remain unverified; the app does not label them as a confirmed model-versus-clinical-baseline comparison.
 
-产品说明可直接打开。真实预测需要将已授权模型包放入 `vendor/`，保留原包目录结构。模型权重、医院资料、患者样本、病历及本地分析结果不包含在公开仓库中。
+输入界面可直接打开；简单预测需要另行提供已授权的 `simple_models.json`。完整模型预测需要将已授权模型包放入 `vendor/`，保留原包目录结构。模型权重、医院资料、患者样本、病历及本地分析结果不包含在公开仓库中。
 
 ## Inputs / 输入
 
@@ -59,3 +55,10 @@ GitHub Pages hosts the bilingual entry page; Streamlit Community Cloud runs `clo
 `analysis.py` can be tested independently of model weights. Full integration tests in `test_platform.py` require authorised local model/sample artifacts. `run_outcome_pipeline.ps1` documents local extraction order; update its Python path for your environment. Original supplied model code is intentionally excluded pending distribution permission.
 
 No software licence is asserted for third-party model code or weights. A project licence can be added by the owner when appropriate.
+
+
+### Simple prediction / 简单预测
+
+The product now offers five research inputs (age, sex, recorded hypertension, HbA1c and creatinine), with a collapsed optional panel for blood pressure, LDL cholesterol, glucose and recorded aspirin use. The 5/10-input predictors use a parameter-only cause-specific survival runtime in `simple_predictor.py`, not sparse inputs passed to the original longitudinal model. The learned `simple_models.json` is supplied separately in the private runtime repository; it is not included here. Public cloud use remains synthetic-only. Full-record upload preserves more information but is not established to be more accurate. Five-year estimates are explicitly unvalidated.
+
+产品提供5项主输入及折叠的补充指标，中英文同步。入口为研究试用；精简模型是编码结局的本院内部探索，尚未完成临床验证。原始医院资料未上传，线上仅使用虚构病例。

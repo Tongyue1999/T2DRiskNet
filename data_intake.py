@@ -3,6 +3,8 @@ import io,json,re,zipfile,math,csv
 from datetime import date,datetime
 import pandas as pd
 
+MAX_INPUT_BYTES=200_000_000
+
 ALIASES={
  'patient_id':['patient_id','patient_key','PERSON_ID_NEW','患者编号','患者ID','病人编号','病人ID','住院号','MRN'],
  'birthdate':['birthdate','date_of_birth','dob','出生日期','出生年月日'],
@@ -14,6 +16,8 @@ ALIASES={
  'unit':['unit','单位','UNIT_NEW']}
 # These names and units are explicit input conventions, not universal clinical equivalences.
 LABS={
+ 'LAB_CR':('血清肌酐','Serum creatinine','μmol/L',['creatinine','cr','肌酐','血清肌酐']),
+ 'LAB_LDL':('LDL胆固醇','LDL cholesterol','mmol/L',['ldl','ldl-c','低密度脂蛋白胆固醇']),
  'LAB_HBA1C':('糖化血红蛋白','HbA1c','%',['hba1c','糖化血红蛋白','糖化血红蛋白(%)','hba1c(%)']),
  'LAB_GLU':('血糖','Glucose','mmol/L',['glucose','glu','血糖','血糖(mmol/l)']),
  'LAB_ALT':('谷丙转氨酶','ALT','IU/L',['alt','谷丙转氨酶','alt(iu/l)']),
@@ -36,12 +40,12 @@ def read_tables(files):
     tables=[];patients={};total=0
     for name,raw in files:
         total+=len(raw)
-        if total>40_000_000:raise ValueError('每批最多40 MB，请分批 / Maximum batch size is 40 MB.')
+        if total>MAX_INPUT_BYTES:raise ValueError('每批最多200 MB，请分批 / Maximum batch size is 200 MB.')
         ext=name.lower().rsplit('.',1)[-1]
         if ext=='zip':
             with zipfile.ZipFile(io.BytesIO(raw)) as z:
                 entries=[i for i in z.infolist() if not i.is_dir() and not i.filename.startswith('__MACOSX')]
-                if len(entries)>20 or sum(i.file_size for i in entries)>40_000_000:raise ValueError('ZIP最多20个文件、解压后40 MB / ZIP limits exceeded.')
+                if len(entries)>20 or sum(i.file_size for i in entries)>MAX_INPUT_BYTES:raise ValueError('ZIP最多20个文件、解压后200 MB / ZIP limits exceeded.')
                 if any(i.filename.lower().endswith('.zip') for i in entries):raise ValueError('不支持嵌套ZIP / Nested ZIP is unsupported.')
                 sub,p=read_tables([(i.filename,z.read(i)) for i in entries]);tables.extend(sub)
                 if set(patients)&set(p):raise ValueError('JSON患者编号重复 / Duplicate JSON patient IDs.')

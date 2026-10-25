@@ -19,7 +19,8 @@ def risk_cards(row,model,lang,selected):
     for h in [3,6,12,36,60]:
         r=float(row[f'risk_{model}_{h}'])
         if not math.isfinite(r) or not 0<=r<=1:raise ValueError('Invalid model probability')
-        cards.append(f'<div class="window-card {"active" if h==selected else ""}"><span>{str(h)+("个月" if zh else " months")}</span><strong>{r:.1%}</strong><small>{assessment+timedelta(days=h*30)}</small></div>')
+        badge=('<em style="display:block;font-size:10px;font-style:normal;color:#98641d">'+('待验证' if zh else 'Unvalidated')+'</em>') if row.get('model_family')=='reduced' and h==60 else ''
+        cards.append(f'<div class="window-card {"active" if h==selected else ""}"><span>{str(h)+("个月" if zh else " months")}</span><strong>{r:.1%}</strong>{badge}<small>{assessment+timedelta(days=h*30)}</small></div>')
     return '<div class="risk-grid">'+''.join(cards)+'</div>'
 
 def portrait_html(rec,row,model,horizon,lang,synthetic=False):
@@ -27,8 +28,8 @@ def portrait_html(rec,row,model,horizon,lang,synthetic=False):
     r=float(row[f'risk_{model}_{horizon}']);age=int(float(row['age']))
     codes={str(e['codes']).replace('.','') for e in rec['events'] if e['admdate']<=str(row['assessment_date'])}
     labels=[t('2型糖尿病','Type 2 diabetes')]
-    if any(c.startswith('I10') for c in codes):labels.append(t('高血压记录','Hypertension record'))
-    labels.append(t('关键资料试算','Key-data trial') if row.get('input_mode')=='key' else t('病历记录','Clinical history'))
+    if any(c.startswith('I10') for c in codes) or rec.get('_simple_inputs',{}).get('I10')==1:labels.append(t('高血压记录','Hypertension record'))
+    labels.append(t('研究试用','Research trial') if row.get('input_mode') in ['key','reduced'] else t('病历记录','Clinical history'))
     dots=''.join('<i'+(' class="on"' if n<int(round(r*100)) else '')+'></i>' for n in range(100))
     name=t('示例患者','Example patient') if synthetic else t('患者画像','Patient profile')
     gender=t('男','Male') if rec['gender']=='男' else t('女','Female')

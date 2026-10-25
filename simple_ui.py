@@ -45,7 +45,12 @@ def check_model_mapping(records):
 def latest_labs(rec,assessment):
     out={}
     for e in sorted(rec['events'],key=lambda x:x['admdate']):
-        if e['admdate']<=assessment and e['codes'].startswith('LAB_') and e.get('value') is not None:out[e['codes']]=e
+        if e['admdate']<=assessment and (e['codes'].startswith('LAB_') or e['codes'] in {'SBP','DBP'}) and e.get('value') is not None and e.get('_numeric_usable',True):
+            try:
+                v=float(e['value'])
+                if not __import__('math').isfinite(v):continue
+            except (ValueError,TypeError):continue
+            out[e['codes']]=dict(e,value=v)
     return out
 
 def render_result(records,frame,manifest,assessment,lang,role,synthetic=False,sparse=False,review_override=None,model_override=None):
