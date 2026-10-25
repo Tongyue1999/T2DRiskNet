@@ -246,7 +246,8 @@ def render_assessment(active,lang,role):
     row['input_mode']=active['mode'];reverse={'P-'+hashlib.sha256(str(k).encode()).hexdigest()[:16]:k for k in active['records']};rec=active['records'][reverse[row.patient_key]]
     st.markdown('<div class="entry-label">'+t('评估结果','ASSESSMENT')+'</div><div class="input-title">'+t('患者数字画像','Patient digital profile')+'</div>',unsafe_allow_html=True)
     st.caption(t('示例病例 · ' if active['synthetic'] else '本次评估 · ','Invented case · ' if active['synthetic'] else 'Current assessment · ')+str(row.assessment_date)+(' · '+t('关键资料试算','Key-data trial') if active['mode']=='key' else ''))
-    selected=st.select_slider(t('探索未来风险','Explore future risk'),options=HORIZONS,value=12,format_func=lambda h:str(h)+t('个月',' months'),key='product_horizon')
+    if 'product_horizon' not in st.session_state:st.session_state['product_horizon']=12
+    selected=st.select_slider(t('探索未来风险','Explore future risk'),options=HORIZONS,format_func=lambda h:str(h)+t('个月',' months'),key='product_horizon')
     def choose_window(h):st.session_state['product_horizon']=h
     with st.container(key='risk_window_buttons'):
         for col,h in zip(st.columns(5,gap='small'),HORIZONS):
